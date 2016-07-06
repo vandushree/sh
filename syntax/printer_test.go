@@ -355,8 +355,11 @@ func TestFprintWeirdFormat(t *testing.T) {
 		samePrint("#foo\n#\n#bar"),
 	}
 
+	n := 0
 	for i, tc := range weirdFormats {
 		check := func(t *testing.T, in, want string) {
+			ioutil.WriteFile(fmt.Sprintf("../corpus/printer-%03d", n), []byte(in), 0644)
+			n++
 			prog, err := Parse(newStrictReader(in), "", ParseComments)
 			if err != nil {
 				t.Fatalf("Unexpected error in %q: %v", in, err)
@@ -425,6 +428,7 @@ func TestFuzzCrashers(t *testing.T) {
 		"<<$<`\n#\n`\n``",
 	}
 	for i, in := range strs {
+		ioutil.WriteFile(fmt.Sprintf("../corpus/crasher-%03d", i), []byte(in), 0644)
 		t.Run(fmt.Sprintf("%03d", i), func(t *testing.T) {
 			prog, err := Parse(newStrictReader(in), "", ParseComments)
 			if err != nil {

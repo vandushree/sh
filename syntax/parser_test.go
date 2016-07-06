@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"reflect"
@@ -32,7 +33,12 @@ func TestParseComments(t *testing.T) {
 
 func TestParseBash(t *testing.T) {
 	t.Parallel()
+	n := 1
 	for i, c := range append(fileTests, fileTestsNoPrint...) {
+		for _, in := range c.Strs {
+			ioutil.WriteFile(fmt.Sprintf("../corpus/parser-%03d", n), []byte(in), 0644)
+			n++
+		}
 		want := c.Bash
 		if want == nil {
 			continue
@@ -837,6 +843,7 @@ func checkError(in, want string, mode ParseMode) func(*testing.T) {
 func TestParseErrPosix(t *testing.T) {
 	t.Parallel()
 	for i, c := range append(shellTests, posixTests...) {
+		ioutil.WriteFile(fmt.Sprintf("../corpus/parser-err-psx-%03d", i), []byte(c.in), 0644)
 		t.Run(fmt.Sprintf("%03d", i), checkError(c.in, c.want, PosixConformant))
 	}
 }
@@ -844,6 +851,7 @@ func TestParseErrPosix(t *testing.T) {
 func TestParseErrBash(t *testing.T) {
 	t.Parallel()
 	for i, c := range append(shellTests, bashTests...) {
+		ioutil.WriteFile(fmt.Sprintf("../corpus/parser-err-%03d", i), []byte(c.in), 0644)
 		t.Run(fmt.Sprintf("%03d", i), checkError(c.in, c.want, 0))
 	}
 }
