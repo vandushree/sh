@@ -1,0 +1,41 @@
+  if [[ $paging_space -ge 30000 && $number_of_cpu -ge 3 && $home_space -ge 20000 && $main_memory -ge 30000 ]]; then
+                        echo " Paging space $paging_space, Number of Cpu's $number_of_cpu, Home space $home_space and Main_memory $main_memory are as per the requirement "
+                else
+                        echo "Abort the testcase execution as Paging Space, Number of Cpu's, Home Space and Main Memrory are not as per requirement"
+            echo "Paging Space should be minimum 30GB but in the system it is = $paging_space"
+            echo "Number of Cpu's ( Entitled Capacity ) should be minimum 3 but in the system it is = $number_of_cpu"
+            echo "Home Space ( /dev/hd1 ) should be minimum 20GB but in the system it is = $home_space"
+            echo "Main Memory ( Online Memory ) should be minimum 30GB but in the system it is = $main_memory"
+
+                        return $TC_FAIL
+                fi
+
+
+                . ./SETUPSCRIPTS/SetupXLC64watson2.sh
+
+                gmake clean
+                gmake
+
+                if [[ $? -ne 0 ]]; then
+                        echo "gMake did not worked properly"
+                        return $TC_FAIL
+                else
+                        echo "gMake worked properly"
+                fi
+
+        #core setting for current user
+
+    lsattr -l sys0 -a fullcore -E > fullcore_status 2>&1
+    cat fullcore_status
+    if [[ $? -eq 0 ]] then
+        grep -w "true" fullcore_status >/dev/null
+        if [[ $? -ne 0 ]] then
+            chdev  -l sys0 -a fullcore='true'
+            if [[ $? -ne 0 ]] then
+                echo "Fullcore dump enable failed\n"
+                rm fullcore_status
+                return 1
+            fi
+        fi
+        rm fullcore_status
+
