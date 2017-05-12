@@ -1,0 +1,48 @@
+# add additional testcase-specific variables here
+
+include_file=../../../staf_common_lib/staf_base.sh
+
+function tc_setup {
+        Monitor "Testcase setup started"
+
+        if [[ -n $include_file && -s $include_file ]] then
+            . ${include_file}
+    else
+        echo "Unable to include file $include_file \n"
+        return 1
+    fi
+
+                which cc >/dev/null
+                if [[ $? -ne 0 ]] then
+                        echo "Compiler is not installed \n"
+                        return $TC_FAIL
+                fi
+
+                make_exist=0
+                number_of_cpu=0
+                hard_disk_size=0
+                main_memory=0
+                paging_space=0
+                home_space=0
+
+                make_exist=`rpm -qa|grep "^make"|awk -F "-" '{print $1}'`
+                if [[ $? -ne 0 ]]; then
+                        echo "RPM Make is not installed."
+                        return $TC_FAIL
+                fi
+
+
+                lsps -a|grep "MB"|awk '{print $4}' | awk -F "MB" '{print $1}' | while read line
+                do
+                        paging_space=`expr $paging_space + $line`
+                done
+                echo " Paging Space is = " $paging_space
+
+                number_of_cpu=`lparstat -i|grep "Entitled Capacity"|awk '$3 == ":" {print $4}'|awk -F "." '{print $1}'`
+                echo " Number of Cpu's are = " $number_of_cpu
+
+                main_memory=`lparstat -i|grep "Online Memory"|awk '$3 == ":" {print $4 }'`
+                echo " Main Memory is = " $main_memory
+
+                home_space=`df -m|grep -e "/home$" |awk '{print $3}'|awk -F "." '{print $1}'`
+
